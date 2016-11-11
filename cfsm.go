@@ -47,7 +47,6 @@ func (s *System) RemoveMachine(id int) {
 			removed++
 		}
 	}
-	s.CFSMs = s.CFSMs[:len(s.CFSMs)-removed]
 	for i := range s.CFSMs {
 		s.CFSMs[i].ID = i
 	}

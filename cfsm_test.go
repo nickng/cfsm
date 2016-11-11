@@ -1,8 +1,6 @@
 package cfsm
 
-import (
-	"testing"
-)
+import "testing"
 
 // Tests creating new machine.
 func TestNewMachine(t *testing.T) {
@@ -121,6 +119,84 @@ func TestTransitions(t *testing.T) {
 	}
 	if len(m1st1.edges) != 0 {
 		t.Errorf("Machine 1 State 1 has %d transitions (expected 0).", len(m1st1.edges))
+	}
+}
+
+// Test removing last machine
+func TestRemoveMachine(t *testing.T) {
+	sys := NewSystem()
+	m0 := sys.NewMachine()
+	if m0.ID != 0 {
+		t.Errorf("Machine 0 should have ID 0")
+	}
+	m1 := sys.NewMachine()
+	if m1.ID != 1 {
+		t.Errorf("Machine 1 should have ID 1")
+	}
+	m0st0 := m0.NewState()
+	m0st1 := m0.NewState()
+	tr0 := NewSend(m1, "Msg")
+	tr0.SetNext(m0st1)
+	m0st0.AddTransition(tr0)
+
+	m1st0 := m1.NewState()
+	m1st1 := m1.NewState()
+	tr1 := NewRecv(m0, "Msg")
+	tr1.SetNext(m1st1)
+	m1st0.AddTransition(tr1)
+
+	m0.Start = m0st0
+	m1.Start = m1st0
+
+	m2 := sys.NewMachine()
+	if m2.ID != 2 {
+		t.Errorf("Machine 2 should have ID 2")
+	}
+	if len(sys.CFSMs) != 3 {
+		t.Errorf("Expects 3 CFSMs but got %d", len(sys.CFSMs))
+	}
+	sys.RemoveMachine(m2.ID)
+	if len(sys.CFSMs) != 2 {
+		t.Errorf("Expects 2 CFSMs but got %d", len(sys.CFSMs))
+	}
+}
+
+// Test removing machine in the middle
+func TestRemoveMachine2(t *testing.T) {
+	sys := NewSystem()
+	m0 := sys.NewMachine()
+	if m0.ID != 0 {
+		t.Errorf("Machine 0 should have ID 0")
+	}
+	m1 := sys.NewMachine()
+	if m1.ID != 1 {
+		t.Errorf("Machine 1 should have ID 1")
+	}
+	m2 := sys.NewMachine()
+	if m2.ID != 2 {
+		t.Errorf("Machine 2 should have ID 2")
+	}
+	m0st0 := m0.NewState()
+	m0st1 := m0.NewState()
+	tr0 := NewSend(m1, "Msg")
+	tr0.SetNext(m0st1)
+	m0st0.AddTransition(tr0)
+
+	m1st0 := m1.NewState()
+	m1st1 := m1.NewState()
+	tr1 := NewRecv(m0, "Msg")
+	tr1.SetNext(m1st1)
+	m1st0.AddTransition(tr1)
+
+	m0.Start = m0st0
+	m1.Start = m1st0
+
+	if len(sys.CFSMs) != 3 {
+		t.Errorf("Expects 3 CFSMs but got %d", len(sys.CFSMs))
+	}
+	sys.RemoveMachine(m2.ID)
+	if len(sys.CFSMs) != 2 {
+		t.Errorf("Expects 2 CFSMs but got %d", len(sys.CFSMs))
 	}
 }
 
