@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/nickng/cfsm/petrify"
 )
@@ -104,21 +105,32 @@ func (m *CFSM) IsEmpty() bool {
 
 func (m *CFSM) String() string {
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("\n-- Machine #%d\n", m.ID))
-	buf.WriteString(fmt.Sprintf("-- %s\n", strings.Replace(m.Comment, "\n", "\n--", -1)))
-	buf.WriteString(fmt.Sprintf(".outputs\n.state graph\n"))
+
+	fmap := template.FuncMap{
+		"multiline": func(s string) string { return strings.Replace(s, "\n", "\n--", -1) },
+	}
+	t := template.Must(template.New("petrify").Funcs(fmap).Parse(petrify.Tmpl))
+	mach := struct {
+		ID      int
+		Start   *State
+		Comment string
+		Edges   []string
+	}{
+		ID:      m.ID,
+		Start:   m.Start,
+		Comment: m.Comment,
+	}
 	for _, st := range m.states {
 		for tr, st2 := range st.edges {
-			buf.WriteString(fmt.Sprintf("q%d%d %s q%d%d\n",
+			mach.Edges = append(mach.Edges, fmt.Sprintf("q%d%d %s q%d%d\n",
 				m.ID, st.ID, petrify.Encode(tr.Label()), m.ID, st2.ID))
 		}
 	}
-	if m.Start == nil {
-		buf.WriteString("-- Start state not set\n")
-	} else {
-		buf.WriteString(fmt.Sprintf(".marking q%d%d\n", m.ID, m.Start.ID))
+	err := t.Execute(&buf, mach)
+	if err != nil {
+		log.Println("Failed to execute template:", err)
 	}
-	buf.WriteString(".end\n")
+
 	return buf.String()
 }
 

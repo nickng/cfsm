@@ -5,6 +5,20 @@ package petrify // import "github.com/nickng/cfsm/petrify"
 
 import "strings"
 
+const Tmpl = `
+-- Machines #{{ .ID }}
+-- {{ multiline .Comment }}
+.outputs
+.state graph
+{{ range .Edges -}}{{ . }}{{- end }}
+{{- if .Start -}}
+.marking q{{ .ID }}{{ .Start.ID }}
+{{- else -}}
+-- Start state not set
+{{- end }}
+.end
+`
+
 // Encode string to petrify accepted format.
 func Encode(s string) string {
 	r := strings.NewReplacer("{", "LBRACE", "}", "RBRACE", ".", "DOT", "(", "LPAREN", ")", "RPAREN", "/", "SLASH")
