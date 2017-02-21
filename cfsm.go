@@ -157,6 +157,17 @@ func (s *State) AddTransition(t Transition) {
 	s.edges[t] = t.State()
 }
 
+// Transitions returns a list of transitions.
+func (s *State) Transitions() []Transition {
+	ts := make([]Transition, len(s.edges))
+	i := 0
+	for t := range s.edges {
+		ts[i] = t
+		i++
+	}
+	return ts
+}
+
 // Transition is a transition from a State to another State.
 type Transition interface {
 	Label() string // Label is the marking on the transition.
