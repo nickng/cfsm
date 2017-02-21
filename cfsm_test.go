@@ -246,3 +246,35 @@ func TestTransitions2(t *testing.T) {
 		t.Errorf("Machine 1 State 1 has %d transitions (expected 1).", len(m1st1.edges))
 	}
 }
+
+// To use the CFSM library, first create a system of CFSMs.
+// From the system, create machines (i.e. CFSMs) for the system.
+// Add states to the machines, and attach transitions to the states.
+// Finally set initial state of each machine.
+func ExampleSystem() {
+	// Create a new system of CFSMs.
+	sys := NewSystem()
+	alice := sys.NewMachine() // CFSM Alice
+	alice.Comment = "Alice"
+
+	bob := sys.NewMachine() // CFSM Bob
+	bob.Comment = "Bob"
+
+	a0 := alice.NewState()
+	a1 := alice.NewState()
+	a01 := NewSend(bob, "int")
+	a01.SetNext(a1)
+	a0.AddTransition(a01) // Add a transition from a0 --> a1.
+
+	b0 := bob.NewState()
+	b1 := bob.NewState()
+	b01 := NewRecv(alice, "int")
+	b01.SetNext(b1)
+	b0.AddTransition(a01) // Add a transition from b0 --> b1.
+
+	// Set initial states of alice and bob.
+	alice.Start = a0
+	bob.Start = b0
+	// Output:
+	//
+}
